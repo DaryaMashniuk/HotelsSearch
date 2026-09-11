@@ -15,10 +15,10 @@ import lombok.Setter;
 @AllArgsConstructor
 public class ArrivalTime {
 
-    @Column(name = "check_in", nullable = false)
+    @Column(name = "check_in", nullable = false, length = 10)
     private String checkIn;
 
-    @Column(name = "check_out")
+    @Column(name = "check_out", length = 10)
     private String checkOut;
 
 }

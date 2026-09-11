@@ -14,7 +14,7 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 public class Contacts {
-    @Column(name = "phone", nullable = false)
+    @Column(name = "phone", nullable = false, length = 100)
     private String phone;
 
     @Column(name = "email", nullable = false)
