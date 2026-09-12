@@ -25,6 +25,8 @@ databaseChangeLog:
               - column:
                   name: brand
                   type: VARCHAR(255)
+                  constraints:
+                    nullable: false
               - column:
                   name: house_number
                   type: INT
@@ -68,8 +70,6 @@ databaseChangeLog:
               - column:
                   name: check_out
                   type: VARCHAR(10)
-                  constraints:
-                    nullable: false
 
         - createTable:
             tableName: amenities
