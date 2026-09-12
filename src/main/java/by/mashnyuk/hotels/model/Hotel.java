@@ -45,6 +45,7 @@ public class Hotel {
     @Column(length = 2000)
     private String description;
 
+    @Column(nullable = false)
     private String brand;
 
     @Embedded
