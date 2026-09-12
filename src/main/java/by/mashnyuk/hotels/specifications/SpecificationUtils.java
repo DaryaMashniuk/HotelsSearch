@@ -29,17 +29,18 @@ public class SpecificationUtils {
                         : cb.equal(cb.lower(root.get(parentField).get(childField)), value.toLowerCase());
     }
 
-    public static <T, E> Specification<T> containsAllInCollection(String collectionField, List<String> values) {
+    public static <T, E> Specification<T> containsAllInCollection(String collectionField, String targetAttribute, List<String> values) {
         return (root, query, cb) -> {
             if (values == null || values.isEmpty()) {
                 return null;
             }
             query.distinct(true);
+
             var predicates = values.stream()
                     .filter(val -> val != null && !val.isBlank())
                     .map(val -> {
                         Join<T, E> join = root.join(collectionField);
-                        return cb.equal(cb.lower(join.as(String.class)), val.toLowerCase());
+                        return cb.equal(cb.lower(join.get(targetAttribute)), val.toLowerCase());
                     })
                     .toArray(jakarta.persistence.criteria.Predicate[]::new);
 

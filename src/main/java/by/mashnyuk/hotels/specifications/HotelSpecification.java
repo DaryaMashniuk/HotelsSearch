@@ -12,6 +12,9 @@ import java.util.List;
 public class HotelSpecification {
 
     public static Specification<Hotel> build(HotelSearchCriteria searchCriteria) {
+        if (searchCriteria == null) {
+            return (root, query, cb) -> cb.conjunction();
+        }
         return Specification.where(containsNameCaseInsensitive(searchCriteria.getName()))
                 .and(hasBrandCaseInsensitive(searchCriteria.getBrand()))
                 .and(hasCityCaseInsensitive(searchCriteria.getCity()))
@@ -36,6 +39,6 @@ public class HotelSpecification {
     }
 
     private static Specification<Hotel> hasAmenities(List<String> amenities) {
-        return SpecificationUtils.containsAllInCollection("amenities", amenities);
+        return SpecificationUtils.containsAllInCollection("amenities","name", amenities);
     }
 }

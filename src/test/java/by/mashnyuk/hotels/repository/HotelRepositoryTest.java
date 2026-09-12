@@ -5,16 +5,17 @@ import by.mashnyuk.hotels.model.Amenity;
 import by.mashnyuk.hotels.model.ArrivalTime;
 import by.mashnyuk.hotels.model.Contacts;
 import by.mashnyuk.hotels.model.Hotel;
+import by.mashnyuk.hotels.model.dto.request.HotelSearchCriteria;
+import by.mashnyuk.hotels.specifications.HotelSpecification;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
 import org.springframework.boot.jpa.test.autoconfigure.TestEntityManager;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.test.context.ActiveProfiles;
-
 import java.util.List;
 import java.util.Optional;
 
@@ -161,6 +162,168 @@ class HotelRepositoryTest {
             assertThat(fetched.get().getAmenities())
                     .extracting(Amenity::getName)
                     .contains("Fitness Center");
+        }
+    }
+
+    @Nested
+    @DisplayName("Tests for HotelSpecification Dynamic Search")
+    class HotelSpecificationTests {
+
+        private Hotel hotel1;
+        private Hotel hotel2;
+        private Hotel hotel3;
+
+        void seedSearchData() {
+            Amenity wifi = entityManager.persist(Amenity.builder().name("Free Wi-Fi").build());
+            Amenity pool = entityManager.persist(Amenity.builder().name("Swimming Pool").build());
+            Amenity parking = entityManager.persist(Amenity.builder().name("Parking").build());
+
+            hotel1 = createSampleHotel("DoubleTree by Hilton Minsk", "Hilton", "Minsk");
+            hotel1.addAmenity(wifi);
+            hotel1.addAmenity(pool);
+            hotel1.addAmenity(parking);
+
+            hotel2 = createSampleHotel("Hilton Garden Inn Grodno", "Hilton", "Grodno");
+            hotel2.addAmenity(wifi);
+
+            hotel3 = createSampleHotel("Renaissance Minsk Hotel", "Marriott", "Minsk");
+            hotel3.addAmenity(wifi);
+            hotel3.addAmenity(pool);
+
+            hotelRepository.saveAll(List.of(hotel1, hotel2, hotel3));
+            flushAndClear();
+        }
+
+        @Test
+        @DisplayName("Should return all hotels when criteria is null or empty")
+        void givenEmptyCriteria_whenFindAll_thenReturnAllHotels() {
+            seedSearchData();
+
+            Specification<Hotel> spec = HotelSpecification.build(null);
+            List<Hotel> result = hotelRepository.findAll(spec);
+
+            assertThat(result).hasSize(3);
+        }
+
+        @Test
+        @DisplayName("Should filter by partial name case-insensitive")
+        void givenNameCriteria_whenFindAll_thenReturnMatchingHotels() {
+            seedSearchData();
+
+            HotelSearchCriteria criteria = HotelSearchCriteria.builder()
+                    .name("hilton")
+                    .build();
+
+            Specification<Hotel> spec = HotelSpecification.build(criteria);
+            List<Hotel> result = hotelRepository.findAll(spec);
+
+            assertThat(result).hasSize(2)
+                    .extracting(Hotel::getName)
+                    .containsExactlyInAnyOrder("DoubleTree by Hilton Minsk", "Hilton Garden Inn Grodno");
+        }
+
+        @Test
+        @DisplayName("Should filter by brand case-insensitive")
+        void givenBrandCriteria_whenFindAll_thenReturnMatchingHotels() {
+            seedSearchData();
+
+            HotelSearchCriteria criteria = HotelSearchCriteria.builder()
+                    .brand("marriott")
+                    .build();
+
+            Specification<Hotel> spec = HotelSpecification.build(criteria);
+            List<Hotel> result = hotelRepository.findAll(spec);
+
+            assertThat(result).hasSize(1);
+            assertThat(result.get(0).getName()).isEqualTo("Renaissance Minsk Hotel");
+        }
+
+        @Test
+        @DisplayName("Should filter by embedded address city and country")
+        void givenCityAndCountryCriteria_whenFindAll_thenReturnMatchingHotels() {
+            seedSearchData();
+
+            HotelSearchCriteria criteria = HotelSearchCriteria.builder()
+                    .city("minsk")
+                    .country("belarus")
+                    .build();
+
+            Specification<Hotel> spec = HotelSpecification.build(criteria);
+            List<Hotel> result = hotelRepository.findAll(spec);
+
+            assertThat(result).hasSize(2)
+                    .extracting(Hotel::getName)
+                    .containsExactlyInAnyOrder("DoubleTree by Hilton Minsk", "Renaissance Minsk Hotel");
+        }
+
+        @Test
+        @DisplayName("Should filter by single amenity")
+        void givenSingleAmenityCriteria_whenFindAll_thenReturnHotelsWithAmenity() {
+            seedSearchData();
+
+            HotelSearchCriteria criteria = HotelSearchCriteria.builder()
+                    .amenities(List.of("parking"))
+                    .build();
+
+            Specification<Hotel> spec = HotelSpecification.build(criteria);
+            List<Hotel> result = hotelRepository.findAll(spec);
+
+            assertThat(result).hasSize(1);
+            assertThat(result.get(0).getName()).isEqualTo("DoubleTree by Hilton Minsk");
+        }
+
+        @Test
+        @DisplayName("Should filter by multiple amenities using AND logic")
+        void givenMultipleAmenitiesCriteria_whenFindAll_thenReturnHotelsWithAllAmenities() {
+            seedSearchData();
+
+            HotelSearchCriteria criteria = HotelSearchCriteria.builder()
+                    .amenities(List.of("free wi-fi", "swimming pool"))
+                    .build();
+
+            Specification<Hotel> spec = HotelSpecification.build(criteria);
+            List<Hotel> result = hotelRepository.findAll(spec);
+
+            assertThat(result).hasSize(2)
+                    .extracting(Hotel::getName)
+                    .containsExactlyInAnyOrder("DoubleTree by Hilton Minsk", "Renaissance Minsk Hotel");
+        }
+
+        @Test
+        @DisplayName("Should filter by complex combination of all fields")
+        void givenAllCriteriaFields_whenFindAll_thenReturnExactMatch() {
+            seedSearchData();
+
+            HotelSearchCriteria criteria = HotelSearchCriteria.builder()
+                    .name("doubletree")
+                    .brand("hilton")
+                    .city("minsk")
+                    .country("belarus")
+                    .amenities(List.of("parking", "swimming pool"))
+                    .build();
+
+            Specification<Hotel> spec = HotelSpecification.build(criteria);
+            List<Hotel> result = hotelRepository.findAll(spec);
+
+            assertThat(result).hasSize(1);
+            assertThat(result.get(0).getName()).isEqualTo("DoubleTree by Hilton Minsk");
+        }
+
+        @Test
+        @DisplayName("Should return empty list when combined criteria matches no entity")
+        void givenNonMatchingCombinedCriteria_whenFindAll_thenReturnEmptyList() {
+            seedSearchData();
+
+            HotelSearchCriteria criteria = HotelSearchCriteria.builder()
+                    .brand("hilton")
+                    .city("minsk")
+                    .amenities(List.of("non-existent-amenity"))
+                    .build();
+
+            Specification<Hotel> spec = HotelSpecification.build(criteria);
+            List<Hotel> result = hotelRepository.findAll(spec);
+
+            assertThat(result).isEmpty();
         }
     }
 
