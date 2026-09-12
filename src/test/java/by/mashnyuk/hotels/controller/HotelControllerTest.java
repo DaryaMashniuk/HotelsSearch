@@ -192,7 +192,7 @@ class HotelControllerTest {
                     .andExpect(jsonPath("$.status").value(400))
                     .andExpect(jsonPath("$.error").value("Bad Request"))
                     .andExpect(jsonPath("$.message", containsString("Validation failed")))
-                    .andExpect(jsonPath("$.details.name").value("Hotel name is required")); // <- Заменено с $.errors.name на $.details.name
+                    .andExpect(jsonPath("$.details.name").value("Hotel name is required"));
         }
 
         @Test
