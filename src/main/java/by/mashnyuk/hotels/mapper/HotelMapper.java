@@ -17,6 +17,7 @@ import org.mapstruct.Mapping;
 import org.mapstruct.MappingConstants;
 import org.mapstruct.Named;
 
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
@@ -66,7 +67,7 @@ public interface HotelMapper {
     }
 
     @Named("mapAmenitiesToStrings")
-    default List<String> mapAmenitiesToStrings(List<Amenity> amenities) {
+    default List<String> mapAmenitiesToStrings(Collection<Amenity> amenities) {
         if (amenities == null) {
             return Collections.emptyList();
         }
