@@ -1,0 +1,17 @@
+spring:
+  profiles:
+    active: h2
+  application:
+    name: hotels-service
+  jpa:
+    properties:
+      hibernate:
+        format_sql: true
+    show-sql: true
+    hibernate:
+      ddl-auto: none
+  liquibase:
+    enabled: true
+    change-log: classpath:db/changelog/db.changelog-master.yaml
+server:
+  port: 8092
