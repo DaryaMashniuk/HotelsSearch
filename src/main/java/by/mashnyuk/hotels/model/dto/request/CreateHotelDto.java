@@ -1,5 +1,8 @@
-package by.mashnyuk.hotels.model.dto;
+package by.mashnyuk.hotels.model.dto.request;
 
+import by.mashnyuk.hotels.model.dto.response.AddressDto;
+import by.mashnyuk.hotels.model.dto.response.ArrivalTimeDto;
+import by.mashnyuk.hotels.model.dto.response.ContactsDto;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;

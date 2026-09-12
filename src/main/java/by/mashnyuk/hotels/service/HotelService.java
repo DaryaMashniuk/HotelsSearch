@@ -1,8 +1,8 @@
 package by.mashnyuk.hotels.service;
 
-import by.mashnyuk.hotels.model.dto.CreateHotelDto;
-import by.mashnyuk.hotels.model.dto.HotelFullDto;
-import by.mashnyuk.hotels.model.dto.HotelShortDto;
+import by.mashnyuk.hotels.model.dto.request.CreateHotelDto;
+import by.mashnyuk.hotels.model.dto.response.HotelFullDto;
+import by.mashnyuk.hotels.model.dto.response.HotelShortDto;
 
 import java.util.List;
 
