@@ -38,4 +38,16 @@ public interface HotelService {
      * @param amenities list of amenity names to attach
      */
     void addAmenitiesToHotel(Long id, List<String> amenities);
+
+    /**
+     * Searches hotels filtering by name, brand, city, country, or amenity.
+     *
+     * @param name hotel name filter (optional)
+     * @param brand hotel brand filter (optional)
+     * @param city city filter (optional)
+     * @param country country filter (optional)
+     * @param amenities list of amenity names filter (optional)
+     * @return filtered list of HotelShortDto
+     */
+    List<HotelShortDto> searchHotels(String name, String brand, String city, String country, List<String> amenities);
 }

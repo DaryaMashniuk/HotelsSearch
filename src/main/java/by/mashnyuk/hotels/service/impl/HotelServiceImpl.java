@@ -78,4 +78,9 @@ public class HotelServiceImpl implements HotelService {
         hotelRepository.save(hotel);
     }
 
+    @Override
+    public List<HotelShortDto> searchHotels(String name, String brand, String city, String country, List<String> amenities) {
+        return List.of();
+    }
+
 }
