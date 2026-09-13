@@ -1,6 +1,7 @@
 package by.mashnyuk.hotels.service;
 
 import by.mashnyuk.hotels.model.dto.request.CreateHotelDto;
+import by.mashnyuk.hotels.model.dto.request.HotelSearchCriteria;
 import by.mashnyuk.hotels.model.dto.response.HotelFullDto;
 import by.mashnyuk.hotels.model.dto.response.HotelShortDto;
 
@@ -40,14 +41,10 @@ public interface HotelService {
     void addAmenitiesToHotel(Long id, List<String> amenities);
 
     /**
-     * Searches hotels filtering by name, brand, city, country, or amenity.
+     * Searches nam hotels filtering by name, brand, city, country, or amenity.
      *
-     * @param name hotel name filter (optional)
-     * @param brand hotel brand filter (optional)
-     * @param city city filter (optional)
-     * @param country country filter (optional)
-     * @param amenities list of amenity names filter (optional)
+     * @param criteria payload with hotel search details
      * @return filtered list of HotelShortDto
      */
-    List<HotelShortDto> searchHotels(String name, String brand, String city, String country, List<String> amenities);
+    List<HotelShortDto> searchHotels(HotelSearchCriteria criteria);
 }
