@@ -19,6 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 
 
 @Service
@@ -87,6 +88,11 @@ public class HotelServiceImpl implements HotelService {
         return hotelRepository.findAll(spec).stream()
                 .map(hotelMapper::toShortDto)
                 .toList();
+    }
+
+    @Override
+    public Map<String, Long> getHistogram(String param) {
+        return hotelRepository.getHistogramByAttribute(param);
     }
 
 }

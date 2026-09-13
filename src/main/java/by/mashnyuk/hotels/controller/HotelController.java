@@ -1,6 +1,7 @@
 package by.mashnyuk.hotels.controller;
 
 
+import by.mashnyuk.hotels.model.HistogramParam;
 import by.mashnyuk.hotels.model.dto.request.CreateHotelDto;
 import by.mashnyuk.hotels.model.dto.request.HotelSearchCriteria;
 import by.mashnyuk.hotels.model.dto.response.HotelFullDto;
@@ -20,6 +21,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/property-view")
@@ -69,4 +71,9 @@ public class HotelController {
         return ResponseEntity.ok(hotelService.searchHotels(criteria));
     }
 
+    @GetMapping("/histogram/{param}")
+    public ResponseEntity<Map<String, Long>> getHistogram(@PathVariable String param) {
+        HistogramParam histogramParam = HistogramParam.fromString(param);
+        return ResponseEntity.ok(hotelService.getHistogram(String.valueOf(histogramParam)));
+    }
 }
