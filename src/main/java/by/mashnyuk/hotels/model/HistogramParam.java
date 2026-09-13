@@ -1,19 +1,26 @@
 package by.mashnyuk.hotels.model;
 
 import by.mashnyuk.hotels.exceptions.IllegalArgumentCustomException;
+import lombok.Getter;
 
+@Getter
 public enum HistogramParam {
-    BRAND,
-    CITY,
-    COUNTRY,
-    AMENITIES;
+    BRAND("brand"),
+    CITY("city"),
+    COUNTRY("country"),
+    AMENITIES("amenities");
 
-    public static HistogramParam fromString(String value) {
-        for (HistogramParam param : values()) {
-            if (param.name().equalsIgnoreCase(value)) {
-                return param;
+    private final String value;
+
+    HistogramParam(String value) {
+        this.value = value;
+    }
+    public static HistogramParam fromString(String param) {
+        for (HistogramParam p : HistogramParam.values()) {
+            if (p.value.equalsIgnoreCase(param) || p.name().equalsIgnoreCase(param)) {
+                return p;
             }
         }
-        throw new IllegalArgumentCustomException("Unsupported histogram parameter: " + value);
+        throw new IllegalArgumentCustomException("Unsupported histogram parameter: " + param);
     }
 }

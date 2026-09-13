@@ -2,6 +2,7 @@ package by.mashnyuk.hotels.controller;
 
 import by.mashnyuk.hotels.exceptions.GlobalExceptionHandler;
 import by.mashnyuk.hotels.exceptions.HotelNotFoundException;
+import by.mashnyuk.hotels.exceptions.IllegalArgumentCustomException;
 import by.mashnyuk.hotels.model.dto.request.CreateHotelDto;
 import by.mashnyuk.hotels.model.dto.request.HotelSearchCriteria;
 import by.mashnyuk.hotels.model.dto.response.AddressDto;
@@ -25,6 +26,7 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 
 import static org.hamcrest.Matchers.containsString;
 import static org.mockito.ArgumentMatchers.any;
@@ -322,4 +324,40 @@ class HotelControllerTest {
             verify(hotelService).searchHotels(eq(criteria));
         }
     }
+
+    @Nested
+    @DisplayName("GET /property-view/histogram/{param}")
+    class GetHistogramTests {
+
+        @Test
+        @DisplayName("Should return 200 OK with histogram map when param is valid")
+        void shouldReturnHistogramForValidParam() throws Exception {
+            Map<String, Long> expectedHistogram = Map.of(
+                    "Hilton", 2L,
+                    "Marriott", 1L
+            );
+
+            when(hotelService.getHistogram("brand")).thenReturn(expectedHistogram);
+
+            mockMvc.perform(get("/property-view/histogram/brand"))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.Hilton").value(2))
+                    .andExpect(jsonPath("$.Marriott").value(1));
+
+            verify(hotelService).getHistogram("brand");
+        }
+
+        @Test
+        @DisplayName("Should return 200 OK with empty map when histogram contains no entries")
+        void shouldReturnEmptyHistogramWhenNoDataAvailable() throws Exception {
+            when(hotelService.getHistogram("city")).thenReturn(Map.of());
+
+            mockMvc.perform(get("/property-view/histogram/city"))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.*").doesNotExist());
+
+            verify(hotelService).getHistogram("city");
+        }
+    }
+
 }

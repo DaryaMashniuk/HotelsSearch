@@ -1,6 +1,7 @@
 package by.mashnyuk.hotels.service.impl;
 
 import by.mashnyuk.hotels.exceptions.HotelNotFoundException;
+import by.mashnyuk.hotels.exceptions.IllegalArgumentCustomException;
 import by.mashnyuk.hotels.model.Amenity;
 import by.mashnyuk.hotels.model.Hotel;
 import by.mashnyuk.hotels.model.dto.request.CreateHotelDto;
@@ -18,8 +19,10 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -27,6 +30,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -182,6 +186,46 @@ class HotelServiceImplTest {
             hotelService.addAmenitiesToHotel(1L, List.of());
 
             verify(hotelRepository, never()).findById(any());
+        }
+    }
+
+    @Nested
+    @DisplayName("getHistogram Tests")
+    class GetHistogramTests {
+
+        @Test
+        @DisplayName("Should return histogram map from repository when valid param passed")
+        void shouldReturnHistogramMap() {
+            Map<String, Long> expectedHistogram = Map.of(
+                    "Minsk", 3L,
+                    "Grodno", 1L
+            );
+
+            when(hotelRepository.getHistogramByAttribute("city")).thenReturn(expectedHistogram);
+
+            Map<String, Long> actualHistogram = hotelService.getHistogram("city");
+
+            assertThat(actualHistogram)
+                    .isNotNull()
+                    .hasSize(2)
+                    .containsEntry("Minsk", 3L)
+                    .containsEntry("Grodno", 1L);
+
+            verify(hotelRepository).getHistogramByAttribute("city");
+        }
+
+        @Test
+        @DisplayName("Should return empty map when repository has no grouped records")
+        void shouldReturnEmptyMapWhenNoData() {
+            when(hotelRepository.getHistogramByAttribute("brand")).thenReturn(Collections.emptyMap());
+
+            Map<String, Long> actualHistogram = hotelService.getHistogram("brand");
+
+            assertThat(actualHistogram)
+                    .isNotNull()
+                    .isEmpty();
+
+            verify(hotelRepository).getHistogramByAttribute("brand");
         }
     }
 }

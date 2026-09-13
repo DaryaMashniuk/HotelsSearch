@@ -12,7 +12,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
-import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.transaction.annotation.Transactional;
@@ -25,6 +24,7 @@ import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.hasSize;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -242,6 +242,82 @@ class HotelIntegrationTest {
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$", hasSize(1)))
                     .andExpect(jsonPath("$[0].name").value("Minsk Marriott"));
+        }
+    }
+
+    @Nested
+    @DisplayName("GET /property-view/histogram/{param} Integration Tests")
+    class GetHistogramIntegrationTests {
+
+        @org.junit.jupiter.api.BeforeEach
+        void setUpData() throws Exception {
+            CreateHotelDto hotel1 = buildValidCreateHotelDto("DoubleTree Minsk");
+            hotel1.setBrand("Hilton");
+            hotel1.getAddress().setCity("Minsk");
+
+            MvcResult res1 = mockMvc.perform(post("/property-view/hotels")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(hotel1)))
+                    .andExpect(status().isCreated())
+                    .andReturn();
+
+            Long id1 = objectMapper.readTree(res1.getResponse().getContentAsString()).get("id").asLong();
+
+            mockMvc.perform(post("/property-view/hotels/{id}/amenities", id1)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(List.of("Free WiFi", "Free parking"))));
+
+            CreateHotelDto hotel2 = buildValidCreateHotelDto("Ritz Carlton");
+            hotel2.setBrand("Carlton");
+            hotel2.getAddress().setCity("Moscow");
+
+            MvcResult res2 = mockMvc.perform(post("/property-view/hotels")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(hotel2)))
+                    .andExpect(status().isCreated())
+                    .andReturn();
+
+            Long id2 = objectMapper.readTree(res2.getResponse().getContentAsString()).get("id").asLong();
+
+            mockMvc.perform(post("/property-view/hotels/{id}/amenities", id2)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(List.of("Free WiFi", "Fitness center"))));
+        }
+
+        @Test
+        @DisplayName("Should return 200 OK and histogram JSON grouped by city")
+        void shouldReturn200AndCityHistogram() throws Exception {
+            mockMvc.perform(get("/property-view/histogram/city"))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.Minsk").value(1))
+                    .andExpect(jsonPath("$.Moscow").value(1));
+        }
+
+        @Test
+        @DisplayName("Should return 200 OK and histogram JSON grouped by amenities")
+        void shouldReturn200AndAmenitiesHistogram() throws Exception {
+            mockMvc.perform(get("/property-view/histogram/amenities"))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.['Free WiFi']").value(2))
+                    .andExpect(jsonPath("$.['Free parking']").value(1))
+                    .andExpect(jsonPath("$.['Fitness center']").value(1));
+        }
+
+        @Test
+        @DisplayName("Should return 200 OK and histogram JSON grouped by brand")
+        void shouldReturn200AndBrandHistogram() throws Exception {
+            mockMvc.perform(get("/property-view/histogram/brand"))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.Hilton").value(1))
+                    .andExpect(jsonPath("$.Carlton").value(1));
+        }
+
+        @Test
+        @DisplayName("Should return 400 Bad Request when unsupported param is supplied")
+        void shouldReturn400ForInvalidParam() throws Exception {
+            mockMvc.perform(get("/property-view/histogram/invalidParam"))
+                    .andExpect(status().isBadRequest())
+                    .andExpect(jsonPath("$.message", containsString("Unsupported histogram parameter: invalidParam")));
         }
     }
 }

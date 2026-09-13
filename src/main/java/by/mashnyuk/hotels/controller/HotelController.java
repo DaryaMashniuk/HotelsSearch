@@ -74,6 +74,6 @@ public class HotelController {
     @GetMapping("/histogram/{param}")
     public ResponseEntity<Map<String, Long>> getHistogram(@PathVariable String param) {
         HistogramParam histogramParam = HistogramParam.fromString(param);
-        return ResponseEntity.ok(hotelService.getHistogram(String.valueOf(histogramParam)));
+        return ResponseEntity.ok(hotelService.getHistogram(histogramParam.getValue()));
     }
 }
