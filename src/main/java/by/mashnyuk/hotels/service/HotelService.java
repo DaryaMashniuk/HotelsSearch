@@ -6,6 +6,7 @@ import by.mashnyuk.hotels.model.dto.response.HotelFullDto;
 import by.mashnyuk.hotels.model.dto.response.HotelShortDto;
 
 import java.util.List;
+import java.util.Map;
 
 public interface HotelService {
 
@@ -47,4 +48,12 @@ public interface HotelService {
      * @return filtered list of HotelShortDto
      */
     List<HotelShortDto> searchHotels(HotelSearchCriteria criteria);
+
+    /**
+     * Calculates a histogram counting hotels grouped by the specified attribute.
+     *
+     * @param param grouping attribute (e.g., "brand", "city", "country", "amenities")
+     * @return map where key is the attribute value and value is the hotel count
+     */
+    Map<String, Long> getHistogram(String param);
 }
