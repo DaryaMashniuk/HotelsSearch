@@ -15,4 +15,6 @@ public interface HotelRepository extends JpaRepository<Hotel, Long>, JpaSpecific
     List<Hotel> findByBrand(String marriott);
 
     List<Hotel> findByAddressCity(String minsk);
+
+    boolean existsByName(String name);
 }
