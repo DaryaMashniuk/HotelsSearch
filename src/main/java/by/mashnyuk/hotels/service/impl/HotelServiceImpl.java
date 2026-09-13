@@ -1,5 +1,6 @@
 package by.mashnyuk.hotels.service.impl;
 
+import by.mashnyuk.hotels.exceptions.HotelAlreadyExistsException;
 import by.mashnyuk.hotels.exceptions.HotelNotFoundException;
 import by.mashnyuk.hotels.model.Amenity;
 import by.mashnyuk.hotels.model.Hotel;
@@ -47,6 +48,10 @@ public class HotelServiceImpl implements HotelService {
     @Override
     @Transactional
     public HotelShortDto createHotel(CreateHotelDto createHotelDto) {
+        if (hotelRepository.existsByName(createHotelDto.getName())) {
+            throw new HotelAlreadyExistsException(createHotelDto.getName());
+        }
+
         Hotel hotel = hotelMapper.toEntity(createHotelDto);
         Hotel savedHotel = hotelRepository.save(hotel);
         return hotelMapper.toShortDto(savedHotel);

@@ -73,6 +73,18 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
     }
 
+    @ExceptionHandler(HotelAlreadyExistsException.class)
+    public ResponseEntity<ErrorResponse> handleHotelAlreadyExistsException(HotelAlreadyExistsException ex) {
+        ErrorResponse error = new ErrorResponse(
+                Instant.now(),
+                HttpStatus.CONFLICT.value(),
+                HttpStatus.CONFLICT.getReasonPhrase(),
+                ex.getMessage(),
+                null
+        );
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(error);
+    }
+
     @ExceptionHandler(HotelNotFoundException.class)
     public ResponseEntity<ErrorResponse> handleResourceNotFoundException(
             HotelNotFoundException exception,

@@ -1,6 +1,7 @@
 package by.mashnyuk.hotels.controller;
 
 
+import by.mashnyuk.hotels.controller.api.HotelControllerApi;
 import by.mashnyuk.hotels.model.HistogramParam;
 import by.mashnyuk.hotels.model.dto.request.CreateHotelDto;
 import by.mashnyuk.hotels.model.dto.request.HotelSearchCriteria;
@@ -26,7 +27,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/property-view")
 @RequiredArgsConstructor
-public class HotelController {
+public class HotelController implements HotelControllerApi {
 
     private final HotelService hotelService;
 
