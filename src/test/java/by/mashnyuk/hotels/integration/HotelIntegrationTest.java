@@ -209,4 +209,39 @@ class HotelIntegrationTest {
                     .andExpect(jsonPath("$.message").value("Hotel not found with id: 9999"));
         }
     }
+
+    @Nested
+    @DisplayName("GET /property-view/search - Dynamic JPA Specification Search")
+    class SearchHotelsIntegrationTests {
+
+        @Test
+        @DisplayName("Should filter hotels by city and amenities dynamically")
+        void shouldFilterHotelsByCityAndAmenities() throws Exception {
+            CreateHotelDto hotel1 = buildValidCreateHotelDto("Minsk Marriott");
+            hotel1.getAddress().setCity("Minsk");
+
+            CreateHotelDto hotel2 = buildValidCreateHotelDto("Hilton Garden Inn");
+            hotel2.getAddress().setCity("Grodno");
+
+            MvcResult res1 = mockMvc.perform(post("/property-view/hotels")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(hotel1))).andReturn();
+            Long id1 = objectMapper.readTree(res1.getResponse().getContentAsString()).get("id").asLong();
+
+            mockMvc.perform(post("/property-view/hotels")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(hotel2)));
+
+            mockMvc.perform(post("/property-view/hotels/{id}/amenities", id1)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(List.of("Free WiFi", "Pool"))));
+
+            mockMvc.perform(get("/property-view/search")
+                            .param("city", "Minsk")
+                            .param("amenities", "Free WiFi"))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$", hasSize(1)))
+                    .andExpect(jsonPath("$[0].name").value("Minsk Marriott"));
+        }
+    }
 }

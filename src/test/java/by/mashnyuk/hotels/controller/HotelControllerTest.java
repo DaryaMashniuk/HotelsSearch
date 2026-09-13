@@ -3,6 +3,7 @@ package by.mashnyuk.hotels.controller;
 import by.mashnyuk.hotels.exceptions.GlobalExceptionHandler;
 import by.mashnyuk.hotels.exceptions.HotelNotFoundException;
 import by.mashnyuk.hotels.model.dto.request.CreateHotelDto;
+import by.mashnyuk.hotels.model.dto.request.HotelSearchCriteria;
 import by.mashnyuk.hotels.model.dto.response.AddressDto;
 import by.mashnyuk.hotels.model.dto.response.ArrivalTimeDto;
 import by.mashnyuk.hotels.model.dto.response.ContactsDto;
@@ -256,6 +257,69 @@ class HotelControllerTest {
                     .andExpect(jsonPath("$.status").value(400))
                     .andExpect(jsonPath("$.error").value("Bad Request"))
                     .andExpect(jsonPath("$.message", containsString("addAmenitiesToHotel.amenities[0]")));
+        }
+    }
+    @Nested
+    @DisplayName("GET /property-view/search")
+    class SearchHotelsTests {
+
+        @Test
+        @DisplayName("Should return 200 OK with matching hotels when search criteria provided")
+        void shouldReturnHotelsWhenSearchCriteriaProvided() throws Exception {
+            HotelSearchCriteria expectedCriteria = HotelSearchCriteria.builder()
+                    .name("DoubleTree")
+                    .brand("Hilton")
+                    .city("Minsk")
+                    .country("Belarus")
+                    .amenities(List.of("Free WiFi", "Fitness center"))
+                    .build();
+
+            when(hotelService.searchHotels(eq(expectedCriteria))).thenReturn(List.of(sampleShortDto));
+
+            mockMvc.perform(get("/property-view/search")
+                            .param("name", "DoubleTree")
+                            .param("brand", "Hilton")
+                            .param("city", "Minsk")
+                            .param("country", "Belarus")
+                            .param("amenities", "Free WiFi", "Fitness center"))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.length()").value(1))
+                    .andExpect(jsonPath("$[0].id").value(1))
+                    .andExpect(jsonPath("$[0].name").value("DoubleTree by Hilton Minsk"))
+                    .andExpect(jsonPath("$[0].phone").value("+375 17 309-80-00"));
+
+            verify(hotelService).searchHotels(eq(expectedCriteria));
+        }
+
+        @Test
+        @DisplayName("Should return 200 OK with empty criteria object when no query params are sent")
+        void shouldReturnHotelsWhenNoQueryParamsProvided() throws Exception {
+            HotelSearchCriteria emptyCriteria = HotelSearchCriteria.builder().build();
+
+            when(hotelService.searchHotels(eq(emptyCriteria))).thenReturn(List.of(sampleShortDto));
+
+            mockMvc.perform(get("/property-view/search"))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.length()").value(1));
+
+            verify(hotelService).searchHotels(eq(emptyCriteria));
+        }
+
+        @Test
+        @DisplayName("Should return 200 OK with empty list when no hotels match search criteria")
+        void shouldReturnEmptyListWhenNoHotelsMatch() throws Exception {
+            HotelSearchCriteria criteria = HotelSearchCriteria.builder()
+                    .city("Unknown City")
+                    .build();
+
+            when(hotelService.searchHotels(eq(criteria))).thenReturn(List.of());
+
+            mockMvc.perform(get("/property-view/search")
+                            .param("city", "Unknown City"))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.length()").value(0));
+
+            verify(hotelService).searchHotels(eq(criteria));
         }
     }
 }

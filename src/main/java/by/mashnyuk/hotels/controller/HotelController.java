@@ -2,6 +2,7 @@ package by.mashnyuk.hotels.controller;
 
 
 import by.mashnyuk.hotels.model.dto.request.CreateHotelDto;
+import by.mashnyuk.hotels.model.dto.request.HotelSearchCriteria;
 import by.mashnyuk.hotels.model.dto.response.HotelFullDto;
 import by.mashnyuk.hotels.model.dto.response.HotelShortDto;
 import by.mashnyuk.hotels.service.HotelService;
@@ -14,6 +15,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -46,6 +48,25 @@ public class HotelController {
     @ResponseStatus(HttpStatus.OK)
     public void addAmenities(@PathVariable Long id, @RequestBody List<String> amenities) {
         hotelService.addAmenitiesToHotel(id, amenities);
+    }
+
+    @GetMapping("/search")
+    public ResponseEntity<List<HotelShortDto>> searchHotels(
+            @RequestParam(required = false) String name,
+            @RequestParam(required = false) String brand,
+            @RequestParam(required = false) String city,
+            @RequestParam(required = false) String country,
+            @RequestParam(required = false) List<String> amenities) {
+
+        HotelSearchCriteria criteria = HotelSearchCriteria.builder()
+                .name(name)
+                .brand(brand)
+                .city(city)
+                .country(country)
+                .amenities(amenities)
+                .build();
+
+        return ResponseEntity.ok(hotelService.searchHotels(criteria));
     }
 
 }

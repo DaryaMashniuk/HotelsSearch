@@ -4,13 +4,16 @@ import by.mashnyuk.hotels.exceptions.HotelNotFoundException;
 import by.mashnyuk.hotels.model.Amenity;
 import by.mashnyuk.hotels.model.Hotel;
 import by.mashnyuk.hotels.model.dto.request.CreateHotelDto;
+import by.mashnyuk.hotels.model.dto.request.HotelSearchCriteria;
 import by.mashnyuk.hotels.model.dto.response.HotelFullDto;
 import by.mashnyuk.hotels.model.dto.response.HotelShortDto;
 import by.mashnyuk.hotels.repository.AmenityRepository;
 import by.mashnyuk.hotels.service.HotelService;
 import by.mashnyuk.hotels.mapper.HotelMapper;
 import by.mashnyuk.hotels.repository.HotelRepository;
+import by.mashnyuk.hotels.specifications.HotelSpecification;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -76,6 +79,14 @@ public class HotelServiceImpl implements HotelService {
         }
 
         hotelRepository.save(hotel);
+    }
+
+    @Override
+    public List<HotelShortDto> searchHotels(HotelSearchCriteria criteria) {
+        Specification<Hotel> spec = HotelSpecification.build(criteria);
+        return hotelRepository.findAll(spec).stream()
+                .map(hotelMapper::toShortDto)
+                .toList();
     }
 
 }
